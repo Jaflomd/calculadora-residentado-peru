@@ -61,7 +61,14 @@ DEFAULT_IDX = next(i for i, x in enumerate(esp) if x["k"] == 'CIRUGIA GENERAL')
 
 DATA = json.dumps({"c2a": c2a, "c2b": c2b, "esp": esp}, ensure_ascii=False)
 
+# distribución nacional del raw ENARM (escala 0-80) 2024-2025, para el conversor raw→T
+base = pd.read_csv('../data/base_postulante_variables_2016-2025_FROZEN.csv', low_memory=False)
+rec = base[(base.CONCURSO >= 2024) & base.examen_T.notna()]
+RAW_MU, RAW_SD = rec.Examen_num.mean(), rec.Examen_num.std()
+print(f'conversor raw→T: mu={RAW_MU:.3f}, sd={RAW_SD:.3f} (n={len(rec)}, 2024-2025)')
+
 html = open('template.html', encoding='utf-8').read()
-html = html.replace('__DATA__', DATA).replace('__DEFAULT_IDX__', str(DEFAULT_IDX))
+html = (html.replace('__DATA__', DATA).replace('__DEFAULT_IDX__', str(DEFAULT_IDX))
+            .replace('__RAW_MU__', f'{RAW_MU:.4f}').replace('__RAW_SD__', f'{RAW_SD:.4f}'))
 open('index.html', 'w', encoding='utf-8').write(html)
 print(f'index.html v2 generado: {len(esp)} especialidades, default idx {DEFAULT_IDX}')

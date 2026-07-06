@@ -58,8 +58,16 @@
     </div>
 
     <div id="campoNota">
-      <label for="notaT" id="t_lnota"></label>
-      <input type="text" inputmode="decimal" id="notaT" value="55" autocomplete="off">
+      <label for="fuente" id="t_lfuente"></label>
+      <select id="fuente">
+        <option value="aciertos" selected id="o_f_aciertos"></option>
+        <option value="p80" id="o_f_p80"></option>
+        <option value="pct" id="o_f_pct"></option>
+        <option value="t" id="o_f_t"></option>
+      </select>
+      <label for="notaVal" id="t_lnotaval"></label>
+      <input type="text" inputmode="decimal" id="notaVal" value="130" autocomplete="off">
+      <p class="nota" id="tconv" style="font-weight:600"></p>
       <p class="nota" id="t_nnota"></p>
     </div>
 
@@ -137,6 +145,27 @@
 <script>
 const D = __DATA__;
 const DEFAULT_IDX = __DEFAULT_IDX__;
+// distribución nacional del ENARM 2024-2025 en escala 0-80 (para el conversor raw→T)
+const RAW_MU = __RAW_MU__, RAW_SD = __RAW_SD__;
+
+// inversa de la normal estándar (aproximación de Acklam, error < 1.15e-9)
+function qnorm(p){
+  const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239];
+  const b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];
+  const c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+  const d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];
+  const pl=0.02425, ph=1-pl; let q,r;
+  if(p<pl){ q=Math.sqrt(-2*Math.log(p)); return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+  if(p>ph){ q=Math.sqrt(-2*Math.log(1-p)); return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+  q=p-0.5; r=q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+// convierte el dato del usuario a escala T nacional
+function toT(fuente, v){
+  if (fuente==='t') return v;
+  if (fuente==='aciertos') return 50 + 10*((v*0.4) - RAW_MU)/RAW_SD;  // 200 preguntas × 0.4 pts
+  if (fuente==='p80') return 50 + 10*(v - RAW_MU)/RAW_SD;
+  return 50 + 10*qnorm(v/100);  // percentil
+}
 let modo = '2a';
 let lang = (localStorage.getItem('calc_lang') || (navigator.language||'es').slice(0,2)) === 'en' ? 'en' : 'es';
 
@@ -145,8 +174,16 @@ es: {
   titulo:'Calculadora de Ingreso al <span>Residentado Médico</span> — Perú',
   sub:'Probabilidad de ingreso estimada con datos de <b>64 477 postulantes (2016–2025)</b>, validada en cohortes futuras (2024–2025).',
   b2a:'Tengo una nota en escala T (ENARM o simulacro)', b2b:'Aún no rindo (solo mi perfil)',
-  lnota:'Tu nota en escala T (media 50, DE 10)',
-  nnota:'Entre 10 y 95. Si usas un simulacro, tu academia debe estandarizarlo a T contra la distribución nacional (supuesto no validado; ver aviso).',
+  lfuente:'¿Qué dato tienes de tu examen o simulacro?',
+  o_f_aciertos:'Aciertos de mi simulacro (de 200 preguntas)',
+  o_f_p80:'Puntaje en escala CONAREME (0–80)',
+  o_f_pct:'Mi percentil en el simulacro (1–99)',
+  o_f_t:'Mi nota ya en escala T',
+  lnotaval:'Valor',
+  conv:(t)=>'Equivale a T ≈ '+t+' (distribución nacional 2024–2025)',
+  nnota:'El conversor asume que tu simulacro se comporta como el ENARM real (misma dificultad y población). Supuesto no validado; ver aviso.',
+  rangos:{aciertos:'aciertos (0–200)', p80:'puntaje CONAREME (0–80)', pct:'percentil (1–99)', t:'nota T (10–95)'},
+  t_fuera:'Ese valor equivale a un T fuera del rango del modelo (10–95): revísalo.',
   lesp:'Especialidad a la que postulas', lenam:'Bonificación ENAM', lserum:'Puntaje SERUMS',
   lquinto:'¿Quinto superior?', lmod:'Modalidad', lanios:'Años desde tu egreso (0–40)',
   lintento:'Número de intento (1–10)', lsexo:'Sexo',
@@ -172,8 +209,16 @@ en: {
   titulo:'Peruvian <span>Medical Residency</span> Admission Calculator',
   sub:'Admission probability estimated from <b>64,477 applicants (2016–2025)</b>, temporally validated in future cohorts (2024–2025).',
   b2a:'I have a T-scale score (ENARM or practice exam)', b2b:'I have not taken the exam (profile only)',
-  lnota:'Your T-scale score (mean 50, SD 10)',
-  nnota:'Between 10 and 95. If you use a practice exam, it must be standardized to the national T distribution (untested assumption; see notice).',
+  lfuente:'What result do you have from your exam or practice test?',
+  o_f_aciertos:'Correct answers on my practice exam (out of 200)',
+  o_f_p80:'Score on the CONAREME 0–80 scale',
+  o_f_pct:'My percentile on the practice exam (1–99)',
+  o_f_t:'My score already on the T scale',
+  lnotaval:'Value',
+  conv:(t)=>'Equivalent to T ≈ '+t+' (national 2024–2025 distribution)',
+  nnota:'The converter assumes your practice exam behaves like the real ENARM (same difficulty and population). Untested assumption; see notice.',
+  rangos:{aciertos:'correct answers (0–200)', p80:'CONAREME score (0–80)', pct:'percentile (1–99)', t:'T score (10–95)'},
+  t_fuera:'That value maps to a T outside the model range (10–95): please check it.',
   lesp:'Specialty you are applying to', lenam:'ENAM bonus', lserum:'SERUMS score',
   lquinto:'Top-quintile honors?', lmod:'Application modality', lanios:'Years since graduation (0–40)',
   lintento:'Attempt number (1–10)', lsexo:'Sex',
@@ -220,7 +265,9 @@ function setLang(l){
   document.getElementById('t_sub').innerHTML = t.sub;
   document.getElementById('btn2a').textContent = t.b2a;
   document.getElementById('btn2b').textContent = t.b2b;
-  const map = {t_lnota:'lnota',t_nnota:'nnota',t_lesp:'lesp',t_lenam:'lenam',t_lserum:'lserum',
+  const map = {t_lfuente:'lfuente',t_lnotaval:'lnotaval',t_nnota:'nnota',
+    o_f_aciertos:'o_f_aciertos',o_f_p80:'o_f_p80',o_f_pct:'o_f_pct',o_f_t:'o_f_t',
+    t_lesp:'lesp',t_lenam:'lenam',t_lserum:'lserum',
     t_lquinto:'lquinto',t_lmod:'lmod',t_lanios:'lanios',t_lintento:'lintento',t_lsexo:'lsexo',
     o_enam_no:'o_enam_no',o_enam_1:'o_enam_1',o_enam_15:'o_enam_15',o_enam_2:'o_enam_2',
     o_ser_0:'o_ser_0',o_ser_1:'o_ser_1',o_ser_2:'o_ser_2',o_q_no:'o_q_no',o_q_si:'o_q_si',
@@ -246,9 +293,21 @@ function calc(){
   const aviso = document.getElementById('avisoinline'), fill = document.getElementById('barrafill');
 
   // validación explícita: nada de defaults silenciosos
-  const nota = num('notaT'), anios = num('anios'), intento = num('intento');
-  let error = null;
-  if (modo==='2a' && (nota===null || nota<10 || nota>95)) { error = t.invalida(t.campo_nota,10,95); marca('notaT', false); } else marca('notaT', true);
+  const anios = num('anios'), intento = num('intento');
+  const fuente = document.getElementById('fuente').value;
+  const RNG = {aciertos:[0,200], p80:[0,80], pct:[1,99], t:[10,95]}[fuente];
+  const val = num('notaVal');
+  const tconv = document.getElementById('tconv');
+  let nota = null, error = null;
+  if (modo==='2a') {
+    if (val===null || val<RNG[0] || val>RNG[1]) {
+      error = t.invalida(t.rangos[fuente], RNG[0], RNG[1]); marca('notaVal', false); tconv.textContent='';
+    } else {
+      nota = toT(fuente, val);
+      if (nota<10 || nota>95) { error = t.t_fuera; marca('notaVal', false); tconv.textContent=''; }
+      else { marca('notaVal', true); tconv.textContent = (fuente==='t') ? '' : t.conv(nota.toFixed(1)); }
+    }
+  } else { marca('notaVal', true); tconv.textContent=''; }
   if (anios===null || anios<0 || anios>40) { error = error || t.invalida(t.campo_anios,0,40); marca('anios', false); } else marca('anios', true);
   if (intento===null || intento<1 || intento>10) { error = error || t.invalida(t.campo_intento,1,10); marca('intento', false); } else marca('intento', true);
   if (error){
@@ -289,6 +348,10 @@ function calc(){
   if (extremo) aviso.textContent = t.extrapo;
 }
 document.querySelectorAll('select,input').forEach(el=>el.addEventListener('input', calc));
+document.getElementById('fuente').addEventListener('change', function(){
+  document.getElementById('notaVal').value = {aciertos:'130', p80:'52', pct:'70', t:'55'}[this.value];
+  calc();
+});
 setLang(lang);
 </script>
 </body>

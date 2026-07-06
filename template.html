@@ -34,6 +34,13 @@
   .chip { display:inline-block; font-size:.78rem; padding:2px 10px; border-radius:999px; border:1px solid var(--borde); color:var(--suave); margin-top:10px; }
   .nota { font-size:.82rem; color:var(--suave); }
   .nota b { color:var(--tinta); }
+  select[size] { height:auto; }
+  @media (min-width:900px) {
+    .wrap { max-width:1100px; }
+    .layout { display:grid; grid-template-columns:1.35fr 1fr; gap:18px; align-items:start; }
+    .lado { position:sticky; top:20px; }
+    h1 { font-size:1.7rem; }
+  }
   details { margin-top:14px; font-size:.85rem; color:var(--suave); }
   summary { cursor:pointer; font-weight:600; color:var(--tinta); }
   footer { margin-top:26px; font-size:.78rem; color:var(--suave); text-align:center; }
@@ -51,6 +58,8 @@
   </div>
   <p class="sub" id="t_sub"></p>
 
+  <div class="layout">
+  <div class="main">
   <div class="card">
     <div class="modo" role="group" aria-label="Modo">
       <button id="btn2a" aria-pressed="true" onclick="setModo('2a')"></button>
@@ -71,8 +80,9 @@
       <p class="nota" id="t_nnota"></p>
     </div>
 
-    <label for="esp" id="t_lesp"></label>
-    <select id="esp"></select>
+    <label for="espFiltro" id="t_lesp"></label>
+    <input type="text" id="espFiltro" autocomplete="off">
+    <select id="esp" aria-label="Especialidad"></select>
     <p class="nota" id="espInfo"></p>
 
     <div class="fila">
@@ -120,12 +130,16 @@
     </div>
   </div>
 
+  </div>
+  <div class="lado">
   <div class="card res" aria-live="polite">
     <div class="pct" id="pct">—</div>
     <div class="etq" id="etq"></div>
     <div class="barra" aria-hidden="true"><div id="barrafill"></div></div>
     <span class="chip" id="chipmodo"></span>
     <div class="aviso-inline" id="avisoinline" hidden></div>
+  </div>
+  </div>
   </div>
 
   <div class="card">
@@ -184,7 +198,9 @@ es: {
   nnota:'El conversor asume que tu simulacro se comporta como el ENARM real (misma dificultad y población). Supuesto no validado; ver aviso.',
   rangos:{aciertos:'aciertos (0–200)', p80:'puntaje CONAREME (0–80)', pct:'percentil (1–99)', t:'nota T (10–95)'},
   t_fuera:'Ese valor equivale a un T fuera del rango del modelo (10–95): revísalo.',
-  lesp:'Especialidad a la que postulas', lenam:'Bonificación ENAM', lserum:'Puntaje SERUMS',
+  lesp:'Especialidad a la que postulas (escribe para buscar)',
+  espfiltro_ph:'Busca: p. ej. "cardio", "pediatr"…',
+  lenam:'Bonificación ENAM', lserum:'Puntaje SERUMS',
   lquinto:'¿Quinto superior?', lmod:'Modalidad', lanios:'Años desde tu egreso (0–40)',
   lintento:'Número de intento (1–10)', lsexo:'Sexo',
   o_enam_no:'No rendí el ENAM', o_enam_1:'ENAM 11–12.9 (+1.0)', o_enam_15:'ENAM 13–14.9 (+1.5)', o_enam_2:'ENAM ≥15 (+2.0)',
@@ -219,7 +235,9 @@ en: {
   nnota:'The converter assumes your practice exam behaves like the real ENARM (same difficulty and population). Untested assumption; see notice.',
   rangos:{aciertos:'correct answers (0–200)', p80:'CONAREME score (0–80)', pct:'percentile (1–99)', t:'T score (10–95)'},
   t_fuera:'That value maps to a T outside the model range (10–95): please check it.',
-  lesp:'Specialty you are applying to', lenam:'ENAM bonus', lserum:'SERUMS score',
+  lesp:'Specialty you are applying to (type to search)',
+  espfiltro_ph:'Search: e.g. "cardio", "pediatr"…',
+  lenam:'ENAM bonus', lserum:'SERUMS score',
   lquinto:'Top-quintile honors?', lmod:'Application modality', lanios:'Years since graduation (0–40)',
   lintento:'Attempt number (1–10)', lsexo:'Sex',
   o_enam_no:'Did not take the ENAM', o_enam_1:'ENAM 11–12.9 (+1.0)', o_enam_15:'ENAM 13–14.9 (+1.5)', o_enam_2:'ENAM ≥15 (+2.0)',
@@ -243,8 +261,34 @@ en: {
 };
 
 const sel = document.getElementById('esp');
-D.esp.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=e.n; sel.appendChild(o); });
-sel.value = DEFAULT_IDX;
+const filtro = document.getElementById('espFiltro');
+let espSel = DEFAULT_IDX;
+function normaliza(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+function rebuildEsp(q){
+  const nq = normaliza(q || '');
+  sel.innerHTML = '';
+  let matches = 0, firstIdx = null;
+  D.esp.forEach((e,i)=>{
+    if (nq && !normaliza(e.n).includes(nq)) return;
+    const o = document.createElement('option'); o.value = i; o.textContent = e.n; sel.appendChild(o);
+    if (firstIdx === null) firstIdx = i;
+    matches++;
+  });
+  if (!matches){
+    const o = document.createElement('option'); o.value = espSel; o.textContent = D.esp[espSel].n;
+    sel.appendChild(o); firstIdx = espSel; matches = 1;
+  }
+  const sigue = [...sel.options].some(o => +o.value === espSel);
+  sel.value = sigue ? espSel : firstIdx;
+  espSel = +sel.value;
+  sel.size = nq ? Math.min(8, Math.max(2, matches)) : 1;
+}
+rebuildEsp('');
+filtro.addEventListener('input', () => rebuildEsp(filtro.value));
+sel.addEventListener('change', () => {
+  espSel = +sel.value;
+  if (sel.size > 1) { filtro.value = ''; rebuildEsp(''); }
+});
 
 function num(id){
   const el = document.getElementById(id);
@@ -274,6 +318,7 @@ function setLang(l){
     o_m_libre:'o_m_libre',o_m_cautiva:'o_m_cautiva',o_m_destaque:'o_m_destaque',
     o_s_f:'o_s_f',o_s_m:'o_s_m',t_av_t:'av_t',t_como_t:'como_t',t_footer:'footer'};
   for (const id in map) document.getElementById(id).textContent = t[map[id]];
+  document.getElementById('espFiltro').placeholder = t.espfiltro_ph;
   document.getElementById('t_av_p').innerHTML = t.av_p;
   document.getElementById('t_como_p').innerHTML = t.como_p;
   calc();

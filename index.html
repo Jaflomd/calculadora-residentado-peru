@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Ingreso al Residentado Médico — Perú</title>
+<style>
+  :root { --rojo:#B03A2E; --teal:#0E7C7B; --tinta:#2C3338; --papel:#FAF8F5; --borde:#E6E0D8; --suave:#8A8177; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--papel); color:var(--tinta); line-height:1.55; }
+  .wrap { max-width:680px; margin:0 auto; padding:32px 20px 60px; }
+  h1 { font-size:1.45rem; letter-spacing:-.02em; }
+  h1 span { color:var(--rojo); }
+  .sub { color:var(--suave); font-size:.9rem; margin:6px 0 24px; }
+  .card { background:#fff; border:1px solid var(--borde); border-radius:10px; padding:22px; margin-bottom:16px; }
+  .modo { display:flex; gap:8px; margin-bottom:18px; }
+  .modo button { flex:1; padding:10px; border:1px solid var(--borde); background:#fff; border-radius:8px; cursor:pointer; font-size:.9rem; color:var(--suave); }
+  .modo button.on { border-color:var(--teal); color:var(--teal); font-weight:600; background:#F0FAFA; }
+  label { display:block; font-size:.82rem; font-weight:600; margin:14px 0 4px; }
+  select,input[type=number] { width:100%; padding:9px 10px; border:1px solid var(--borde); border-radius:7px; font-size:.95rem; background:#fff; color:var(--tinta); }
+  .fila { display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
+  .res { text-align:center; padding:26px 20px; }
+  .res .pct { font-size:3.2rem; font-weight:700; letter-spacing:-.03em; }
+  .res .etq { font-size:.9rem; color:var(--suave); margin-top:2px; }
+  .barra { height:10px; background:var(--borde); border-radius:5px; margin:16px auto 4px; max-width:420px; overflow:hidden; }
+  .barra div { height:100%; width:0%; background:linear-gradient(90deg,var(--rojo),var(--teal)); transition:width .4s; }
+  .chip { display:inline-block; font-size:.75rem; padding:2px 10px; border-radius:999px; border:1px solid var(--borde); color:var(--suave); margin-top:10px; }
+  .nota { font-size:.78rem; color:var(--suave); }
+  .nota b { color:var(--tinta); }
+  details { margin-top:14px; font-size:.82rem; color:var(--suave); }
+  summary { cursor:pointer; font-weight:600; color:var(--tinta); }
+  footer { margin-top:26px; font-size:.75rem; color:var(--suave); text-align:center; }
+  a { color:var(--teal); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Calculadora de Ingreso al <span>Residentado Médico</span> — Perú</h1>
+  <p class="sub">Probabilidad de ingreso estimada con datos de <b>64&nbsp;477 postulantes (2016–2025)</b>, validada en cohortes futuras (2024–2025).</p>
+
+  <div class="card">
+    <div class="modo">
+      <button id="btn2a" class="on" onclick="setModo('2a')">Tengo una nota en escala T (ENARM o simulacro)</button>
+      <button id="btn2b" onclick="setModo('2b')">Aún no rindo (solo mi perfil)</button>
+    </div>
+
+    <div id="campoNota">
+      <label>Tu nota en escala T (media 50, DE 10)</label>
+      <input type="number" id="notaT" value="55" min="10" max="95" step="0.1">
+      <p class="nota">Si usas un simulacro, tu academia debe estandarizarlo a T contra la distribución nacional (supuesto no validado; ver aviso).</p>
+    </div>
+
+    <label>Especialidad a la que postulas</label>
+    <select id="esp"></select>
+    <p class="nota" id="espInfo"></p>
+
+    <div class="fila">
+      <div>
+        <label>Bonificación ENAM</label>
+        <select id="enam">
+          <option value="no">No rendí el ENAM</option>
+          <option value="1">ENAM 11–12.9 (+1.0)</option>
+          <option value="1.5" selected>ENAM 13–14.9 (+1.5)</option>
+          <option value="2">ENAM ≥15 (+2.0)</option>
+        </select>
+      </div>
+      <div>
+        <label>Puntaje SERUMS</label>
+        <select id="serum">
+          <option value="0">0–6 puntos</option>
+          <option value="1">7–9 puntos</option>
+          <option value="2" selected>10 puntos</option>
+        </select>
+      </div>
+      <div>
+        <label>¿Quinto superior?</label>
+        <select id="quinto"><option value="0">No</option><option value="1">Sí</option></select>
+      </div>
+      <div>
+        <label>Modalidad</label>
+        <select id="mod">
+          <option value="libre">Libre</option>
+          <option value="cautiva">Cautiva</option>
+          <option value="destaque">Destaque</option>
+        </select>
+      </div>
+      <div>
+        <label>Años desde tu egreso</label>
+        <input type="number" id="anios" value="2" min="0" max="40" step="1">
+      </div>
+      <div>
+        <label>Número de intento</label>
+        <input type="number" id="intento" value="1" min="1" max="10" step="1">
+      </div>
+      <div>
+        <label>Sexo</label>
+        <select id="sexo"><option value="0">Femenino</option><option value="1">Masculino</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card res">
+    <div class="pct" id="pct">—</div>
+    <div class="etq" id="etq"></div>
+    <div class="barra"><div id="barrafill"></div></div>
+    <span class="chip" id="chipmodo"></span>
+  </div>
+
+  <div class="card">
+    <details open>
+      <summary>Aviso importante — lee esto antes de usar el resultado</summary>
+      <p style="margin-top:8px">Esta es una <b>herramienta de investigación</b>, no un instrumento oficial de CONAREME.
+      La probabilidad proviene de modelos de regresión logística entrenados con los concursos 2016–2023 y
+      validados temporalmente en 2024–2025 (AUROC 0.824 con nota; 0.788 sin nota). El uso de un
+      <b>simulacro</b> como sustituto de la nota real asume que tu academia lo estandariza correctamente
+      contra la distribución nacional; ese supuesto <b>no está validado</b>. La competitividad de cada
+      especialidad se actualiza con datos 2024–2025 y puede cambiar cada año. El resultado es una
+      estimación poblacional: no garantiza ni niega tu ingreso.</p>
+    </details>
+    <details>
+      <summary>¿Cómo funciona?</summary>
+      <p style="margin-top:8px">Aplicamos una fórmula logística transparente cuyos coeficientes están publicados
+      en el manuscrito y en este repositorio. La calculadora resuelve la competitividad de tu especialidad
+      automáticamente (postulantes por plaza, estandarizado). Dos modos: con nota (post-examen o simulacro)
+      y sin nota (solo tu perfil académico, para orientación temprana).</p>
+    </details>
+  </div>
+
+  <footer>Datos: resultados públicos de CONAREME 2016–2025 · Código y coeficientes abiertos ·
+  Manuscrito en preparación (Flores-Cohaila et&nbsp;al.)</footer>
+</div>
+
+<script>
+const D = {"c2a": {"(Intercept)": -9.1579, "examen_T": 0.1491, "competitividad_z": -1.2611, "enam_ord_fill": 0.0717, "enam_no_rindio": 0.098, "quinto_superior": 0.2518, "serum_ord": 0.2604, "anios_desde_egreso_cal_cont": 0.0168, "n_intento": 0.1383, "cautiva": 3.4781, "destaque": 3.4166, "sexo_M": -0.0063}, "c2b": {"(Intercept)": -2.8399, "competitividad_z": -0.862, "enam_ord_fill": 1.3277, "enam_no_rindio": 0.9005, "quinto_superior": 0.5346, "serum_ord": 0.311, "anios_desde_egreso_cal_cont": -0.0108, "n_intento": 0.208, "cautiva": 2.3584, "destaque": 2.3179, "sexo_M": 0.0922}, "esp": [{"n": "Administracion Y Gestion En Salud", "z": -1.229, "e": "Media"}, {"n": "Adolescentologia", "z": -1.556, "e": "Baja"}, {"n": "Anatomia Patologica", "z": -1.331, "e": "Media"}, {"n": "Anestesiologia", "z": -1.127, "e": "Media"}, {"n": "Anestesiologia Cardiovascular", "z": -0.86, "e": "Media"}, {"n": "Anestesiologia Y Terapia Intensiva Cardiovascular", "z": 0.176, "e": "Alta"}, {"n": "Cardiologia", "z": 0.06, "e": "Alta"}, {"n": "Cardiologia Pediatrica", "z": -1.327, "e": "Media"}, {"n": "Cirugia Cardiovascular Pediatrica", "z": -2.685, "e": "Baja"}, {"n": "Cirugia De Cabeza Cuello Y Maxilofacial", "z": 0.264, "e": "Alta"}, {"n": "Cirugia De Colon Recto Y Ano", "z": 1.886, "e": "Muy alta"}, {"n": "Cirugia De Mano", "z": 2.023, "e": "Muy alta"}, {"n": "Cirugia De Retina Y Vitreo", "z": 2.384, "e": "Muy alta"}, {"n": "Cirugia De Torax Oncologica", "z": -1.612, "e": "Baja"}, {"n": "Cirugia De Torax Y Cardiovascular", "z": 0.839, "e": "Muy alta"}, {"n": "Cirugia General", "z": 0.018, "e": "Alta"}, {"n": "Cirugia Hepatopancreatobiliar Y Transplante", "z": 2.036, "e": "Muy alta"}, {"n": "Cirugia Oncologica", "z": 0.12, "e": "Alta"}, {"n": "Cirugia Oncologica Abdominal", "z": 1.4, "e": "Muy alta"}, {"n": "Cirugia Oncologica De Cabeza Y Cuello", "z": -0.897, "e": "Media"}, {"n": "Cirugia Oncologica De Mamas Tejidos Blandos Y Piel", "z": 1.054, "e": "Muy alta"}, {"n": "Cirugia Pediatrica", "z": -0.157, "e": "Alta"}, {"n": "Cirugia Plastica", "z": 1.826, "e": "Muy alta"}, {"n": "Dermatologia", "z": 1.638, "e": "Muy alta"}, {"n": "Dermatologia Pediatrica", "z": 0.144, "e": "Alta"}, {"n": "Emergencias Pediatricas", "z": -2.827, "e": "Baja"}, {"n": "Endocrinologia", "z": 0.395, "e": "Muy alta"}, {"n": "Endocrinologia Pediatrica", "z": -0.514, "e": "Alta"}, {"n": "Gastroenterologia", "z": 0.422, "e": "Muy alta"}, {"n": "Gastroenterologia Pediatrica", "z": -1.38, "e": "Baja"}, {"n": "Genetica Medica", "z": -0.408, "e": "Alta"}, {"n": "Geriatria", "z": -1.043, "e": "Media"}, {"n": "Ginecologia Oncologica", "z": 1.017, "e": "Muy alta"}, {"n": "Ginecologia Y Obstetricia", "z": -0.75, "e": "Media"}, {"n": "Hematologia", "z": -1.411, "e": "Baja"}, {"n": "Hematologia Pediatrica", "z": -1.3, "e": "Media"}, {"n": "Infectologia Pediatrica", "z": -1.542, "e": "Baja"}, {"n": "Inmunologia Y Alergia", "z": 0.175, "e": "Alta"}, {"n": "Medicina De Emergencias Y Desastres", "z": -2.504, "e": "Baja"}, {"n": "Medicina De Enfermedades Infecciosas Y Tropicales", "z": -1.777, "e": "Baja"}, {"n": "Medicina Del Deporte", "z": 0.047, "e": "Alta"}, {"n": "Medicina Familiar Y Comunitaria", "z": -3.492, "e": "Baja"}, {"n": "Medicina Fisica Y De Rehabilitacion", "z": 0.146, "e": "Alta"}, {"n": "Medicina Intensiva", "z": -2.303, "e": "Baja"}, {"n": "Medicina Intensiva Pediatrica", "z": -1.704, "e": "Baja"}, {"n": "Medicina Interna", "z": -3.055, "e": "Baja"}, {"n": "Medicina Legal", "z": -1.05, "e": "Media"}, {"n": "Medicina Nuclear", "z": -0.92, "e": "Media"}, {"n": "Medicina Ocupacional Y Del Medio Ambiente", "z": 0.393, "e": "Alta"}, {"n": "Medicina Oncologica", "z": -1.023, "e": "Media"}, {"n": "Nefrologia", "z": -0.633, "e": "Media"}, {"n": "Neonatologia", "z": -2.262, "e": "Baja"}, {"n": "Neumologia", "z": -1.566, "e": "Baja"}, {"n": "Neumologia Pediatrica", "z": -0.656, "e": "Media"}, {"n": "Neurocirugia", "z": 0.729, "e": "Muy alta"}, {"n": "Neurocirugia Pediatrica", "z": -0.529, "e": "Media"}, {"n": "Neurologia", "z": -0.722, "e": "Media"}, {"n": "Neurologia Pediatrica", "z": -0.763, "e": "Media"}, {"n": "Oftalmologia", "z": 0.561, "e": "Muy alta"}, {"n": "Oftalmologia Oncologica", "z": 0.703, "e": "Muy alta"}, {"n": "Oftalmologia Pediatrica Y Estrabismo", "z": 0.132, "e": "Alta"}, {"n": "Oncologia Pediatrica", "z": -2.099, "e": "Baja"}, {"n": "Ortopedia Y Traumatologia", "z": 0.585, "e": "Muy alta"}, {"n": "Otorrinolaringologia", "z": 0.814, "e": "Muy alta"}, {"n": "Patologia Clinica", "z": -1.738, "e": "Baja"}, {"n": "Patologia Oncologica", "z": -0.205, "e": "Alta"}, {"n": "Pediatria", "z": -0.589, "e": "Media"}, {"n": "Psiquiatria", "z": -0.103, "e": "Alta"}, {"n": "Psiquiatria De Adicciones", "z": -3.267, "e": "Baja"}, {"n": "Psiquiatria Del Nino Y Del Adolescente", "z": -1.865, "e": "Baja"}, {"n": "Radiologia", "z": -0.06, "e": "Alta"}, {"n": "Radiologia Intervencionista", "z": 1.921, "e": "Muy alta"}, {"n": "Radioterapia", "z": -1.705, "e": "Baja"}, {"n": "Reumatologia", "z": -0.295, "e": "Alta"}, {"n": "Urologia", "z": 0.204, "e": "Alta"}, {"n": "Urologia Oncologica", "z": 1.546, "e": "Muy alta"}, {"n": "Urologia Pediatrica", "z": -0.644, "e": "Media"}]};
+let modo = '2a';
+
+const sel = document.getElementById('esp');
+D.esp.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=e.n; sel.appendChild(o); });
+sel.value = D.esp.findIndex(e=>e.n.toUpperCase().startsWith('CIRUGIA GENERAL'));
+
+function setModo(m){
+  modo=m;
+  document.getElementById('btn2a').classList.toggle('on', m==='2a');
+  document.getElementById('btn2b').classList.toggle('on', m==='2b');
+  document.getElementById('campoNota').style.display = (m==='2a') ? 'block' : 'none';
+  calc();
+}
+function calc(){
+  const e = D.esp[+sel.value];
+  document.getElementById('espInfo').textContent = 'Competitividad ' + e.e.toUpperCase() + ' (z = ' + e.z.toFixed(2) + ', concursos 2024–2025)';
+  const enamV = document.getElementById('enam').value;
+  const x = {
+    competitividad_z: e.z,
+    enam_ord_fill: enamV==='no' ? 0 : parseFloat(enamV),
+    enam_no_rindio: enamV==='no' ? 1 : 0,
+    quinto_superior: +document.getElementById('quinto').value,
+    serum_ord: +document.getElementById('serum').value,
+    anios_desde_egreso_cal_cont: +document.getElementById('anios').value || 0,
+    n_intento: +document.getElementById('intento').value || 1,
+    cautiva: document.getElementById('mod').value==='cautiva' ? 1 : 0,
+    destaque: document.getElementById('mod').value==='destaque' ? 1 : 0,
+    sexo_M: +document.getElementById('sexo').value
+  };
+  const C = (modo==='2a') ? D.c2a : D.c2b;
+  if (modo==='2a') x.examen_T = +document.getElementById('notaT').value || 50;
+  let z = C['(Intercept)'];
+  for (const k in x) if (k in C) z += C[k]*x[k];
+  const p = 100/(1+Math.exp(-z));
+  document.getElementById('pct').textContent = p.toFixed(1) + '%';
+  document.getElementById('pct').style.color = p>=60 ? 'var(--teal)' : (p>=30 ? 'var(--tinta)' : 'var(--rojo)');
+  document.getElementById('etq').textContent = 'Probabilidad estimada de ingresar a ' + e.n;
+  document.getElementById('barrafill').style.width = p.toFixed(1)+'%';
+  document.getElementById('chipmodo').textContent = (modo==='2a') ? 'Modelo con nota · AUROC 0.824' : 'Modelo pre-examen · AUROC 0.788';
+}
+document.querySelectorAll('select,input').forEach(el=>el.addEventListener('input', calc));
+calc();
+</script>
+</body>
+</html>

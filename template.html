@@ -112,7 +112,6 @@
         <select id="mod">
           <option value="libre" id="o_m_libre"></option>
           <option value="cautiva" id="o_m_cautiva"></option>
-          <option value="destaque" id="o_m_destaque"></option>
         </select>
       </div>
       <div>
@@ -195,17 +194,17 @@ es: {
   o_f_t:'Mi nota ya en escala T',
   lnotaval:'Valor',
   conv:(t)=>'Equivale a T ≈ '+t+' (distribución nacional 2024–2025)',
-  nnota:'El conversor asume que tu simulacro se comporta como el ENARM real (misma dificultad y población). Supuesto no validado; ver aviso.',
+  nnota:'Si usas un simulacro, el resultado es un análisis de escenario, no una probabilidad calibrada: no existe vinculación formal simulacro–ENARM.',
   rangos:{aciertos:'aciertos (0–200)', p80:'puntaje CONAREME (0–80)', pct:'percentil (1–99)', t:'nota T (10–95)'},
   t_fuera:'Ese valor equivale a un T fuera del rango del modelo (10–95): revísalo.',
   lesp:'Especialidad a la que postulas (escribe para buscar)',
   espfiltro_ph:'Busca: p. ej. "cardio", "pediatr"…',
   lenam:'Bonificación ENAM', lserum:'Puntaje SERUMS',
   lquinto:'¿Quinto superior?', lmod:'Modalidad', lanios:'Años desde tu egreso (0–40)',
-  lintento:'Número de intento (1–10)', lsexo:'Sexo',
+  lintento:'Número del intento actual (1 = primera postulación)', lsexo:'Sexo',
   o_enam_no:'No rendí el ENAM', o_enam_1:'ENAM 11–12.9 (+1.0)', o_enam_15:'ENAM 13–14.9 (+1.5)', o_enam_2:'ENAM ≥15 (+2.0)',
   o_ser_0:'0–6 puntos', o_ser_1:'7–9 puntos', o_ser_2:'10 puntos',
-  o_q_no:'No', o_q_si:'Sí', o_m_libre:'Libre', o_m_cautiva:'Cautiva', o_m_destaque:'Destaque',
+  o_q_no:'No', o_q_si:'Sí', o_m_libre:'Libre', o_m_cautiva:'Cautiva',
   o_s_f:'Femenino', o_s_m:'Masculino',
   niveles:{muy_alta:'MUY ALTA', alta:'ALTA', media:'MEDIA', baja:'BAJA'},
   comp:(e,z)=>'Competitividad '+e+' (z = '+z+', concursos 2024–2025)',
@@ -213,11 +212,12 @@ es: {
   chip2a:'Modelo con nota · AUROC 0.824', chip2b:'Modelo pre-examen · AUROC 0.788',
   invalida:(campo,min,max)=>'Revisa "'+campo+'": ingresa un número entre '+min+' y '+max+'.',
   extrapo:'Tu perfil está fuera del rango típico de los datos: interpreta con cautela.',
+  sesgo2b:'El modelo preexamen sobreestimó el ingreso en 4.8 puntos porcentuales en promedio (45.2% predicho frente a 40.4% observado).',
   menor:'<0.1%', mayor:'>99.9%',
   av_t:'Aviso importante — lee esto antes de usar el resultado',
-  av_p:'Esta es una <b>herramienta de investigación</b>, no un instrumento oficial de CONAREME. La probabilidad proviene de modelos de regresión logística entrenados con los concursos 2016–2023 y validados temporalmente en 2024–2025 (AUROC 0.824 con nota; 0.788 sin nota). El uso de un <b>simulacro</b> como sustituto de la nota real asume que tu academia lo estandariza correctamente contra la distribución nacional; ese supuesto <b>no está validado</b>. La competitividad de cada especialidad se actualiza con datos 2024–2025 y puede cambiar cada año. El resultado es una estimación poblacional: no garantiza ni niega tu ingreso.',
+  av_p:'Esta es una <b>herramienta de investigación</b>, no un instrumento oficial de CONAREME ni una herramienta validada para consejería rutinaria. Los modelos se entrenaron con 2016–2023 y se validaron temporalmente en 2024–2025 (AUROC 0.824 con nota; 0.788 sin nota). El modelo preexamen tuvo un sesgo optimista promedio de <b>4.8 puntos porcentuales</b>. Sustituir la nota real por un <b>simulacro</b> asume equivalencia de métrica, dificultad y varianza; ese supuesto <b>no está validado</b>, por lo que el resultado es solo un escenario de sensibilidad. La competitividad puede cambiar cada año y requiere recalibración periódica. El resultado no garantiza ni niega tu ingreso.',
   como_t:'¿Cómo funciona?',
-  como_p:'Aplicamos una fórmula logística transparente cuyos coeficientes están publicados en el manuscrito y en este repositorio. La calculadora resuelve la competitividad de tu especialidad automáticamente. Dos modos: con nota (post-examen o simulacro) y sin nota (solo tu perfil académico, para orientación temprana).',
+  como_p:'Aplicamos una fórmula logística transparente cuyos coeficientes están publicados. La calculadora incorpora la competitividad de la especialidad y el número acumulado de postulaciones. Dos modos: con nota real o escenario de simulacro, y preexamen con el perfil académico.',
   footer:'Datos: resultados públicos de CONAREME 2016–2025 · Código y coeficientes abiertos · Manuscrito en preparación (Flores-Cohaila et al.)',
   campo_nota:'nota T', campo_anios:'años desde egreso', campo_intento:'número de intento',
 },
@@ -232,17 +232,17 @@ en: {
   o_f_t:'My score already on the T scale',
   lnotaval:'Value',
   conv:(t)=>'Equivalent to T ≈ '+t+' (national 2024–2025 distribution)',
-  nnota:'The converter assumes your practice exam behaves like the real ENARM (same difficulty and population). Untested assumption; see notice.',
+  nnota:'When a practice score is used, the result is a scenario analysis, not a calibrated probability: no formal practice-test–ENARM linking is available.',
   rangos:{aciertos:'correct answers (0–200)', p80:'CONAREME score (0–80)', pct:'percentile (1–99)', t:'T score (10–95)'},
   t_fuera:'That value maps to a T outside the model range (10–95): please check it.',
   lesp:'Specialty you are applying to (type to search)',
   espfiltro_ph:'Search: e.g. "cardio", "pediatr"…',
   lenam:'ENAM bonus', lserum:'SERUMS score',
   lquinto:'Top-quintile honors?', lmod:'Application modality', lanios:'Years since graduation (0–40)',
-  lintento:'Attempt number (1–10)', lsexo:'Sex',
+  lintento:'Current attempt number (1 = first application)', lsexo:'Sex',
   o_enam_no:'Did not take the ENAM', o_enam_1:'ENAM 11–12.9 (+1.0)', o_enam_15:'ENAM 13–14.9 (+1.5)', o_enam_2:'ENAM ≥15 (+2.0)',
   o_ser_0:'0–6 points', o_ser_1:'7–9 points', o_ser_2:'10 points',
-  o_q_no:'No', o_q_si:'Yes', o_m_libre:'Open (libre)', o_m_cautiva:'Sponsored (cautiva)', o_m_destaque:'Destaque',
+  o_q_no:'No', o_q_si:'Yes', o_m_libre:'Open (libre)', o_m_cautiva:'Sponsored (cautiva)',
   o_s_f:'Female', o_s_m:'Male',
   niveles:{muy_alta:'VERY HIGH', alta:'HIGH', media:'MEDIUM', baja:'LOW'},
   comp:(e,z)=>e+' competitiveness (z = '+z+', 2024–2025 processes)',
@@ -250,11 +250,12 @@ en: {
   chip2a:'Score-based model · AUROC 0.824', chip2b:'Pre-exam model · AUROC 0.788',
   invalida:(campo,min,max)=>'Check "'+campo+'": enter a number between '+min+' and '+max+'.',
   extrapo:'Your profile is outside the typical data range: interpret with caution.',
+  sesgo2b:'The pre-examination model overpredicted admission by 4.8 percentage points on average (45.2% predicted vs 40.4% observed).',
   menor:'<0.1%', mayor:'>99.9%',
   av_t:'Important notice — read before using the result',
-  av_p:'This is a <b>research tool</b>, not an official CONAREME instrument. Probabilities come from logistic regression models trained on the 2016–2023 processes and temporally validated on 2024–2025 (AUROC 0.824 with score; 0.788 without). Using a <b>practice exam</b> as a substitute for the real score assumes correct standardization against the national T distribution; that assumption is <b>not validated</b>. Specialty competitiveness reflects 2024–2025 and may change every year. The result is a population estimate: it neither guarantees nor rules out admission. Specialty names are shown in Spanish as published by CONAREME.',
+  av_p:'This is a <b>research tool</b>, not an official CONAREME instrument or a tool validated for routine counseling. Models were trained on 2016–2023 and temporally validated on 2024–2025 (AUROC 0.824 with score; 0.788 without). The pre-examination model had an average optimistic bias of <b>4.8 percentage points</b>. Substituting a <b>practice exam</b> for the real score assumes equivalent metrics, difficulty, and variance; that assumption is <b>not validated</b>, so the output is only a sensitivity scenario. Specialty competitiveness may change each year and requires periodic recalibration. The result neither guarantees nor rules out admission.',
   como_t:'How does it work?',
-  como_p:'We apply a transparent logistic equation whose coefficients are published in the manuscript and in this repository. The calculator automatically resolves the competitiveness of your specialty. Two modes: with a score (post-exam or practice) and without one (academic profile only, for early orientation).',
+  como_p:'We apply a published transparent logistic equation. The calculator incorporates specialty competitiveness and cumulative application attempts. Two modes are available: actual-score or practice-score scenario, and a pre-examination academic-profile estimate.',
   footer:'Data: public CONAREME results 2016–2025 · Open code and coefficients · Manuscript in preparation (Flores-Cohaila et al.)',
   campo_nota:'T score', campo_anios:'years since graduation', campo_intento:'attempt number',
 },
@@ -315,7 +316,7 @@ function setLang(l){
     t_lquinto:'lquinto',t_lmod:'lmod',t_lanios:'lanios',t_lintento:'lintento',t_lsexo:'lsexo',
     o_enam_no:'o_enam_no',o_enam_1:'o_enam_1',o_enam_15:'o_enam_15',o_enam_2:'o_enam_2',
     o_ser_0:'o_ser_0',o_ser_1:'o_ser_1',o_ser_2:'o_ser_2',o_q_no:'o_q_no',o_q_si:'o_q_si',
-    o_m_libre:'o_m_libre',o_m_cautiva:'o_m_cautiva',o_m_destaque:'o_m_destaque',
+    o_m_libre:'o_m_libre',o_m_cautiva:'o_m_cautiva',
     o_s_f:'o_s_f',o_s_m:'o_s_m',t_av_t:'av_t',t_como_t:'como_t',t_footer:'footer'};
   for (const id in map) document.getElementById(id).textContent = t[map[id]];
   document.getElementById('espFiltro').placeholder = t.espfiltro_ph;
@@ -372,7 +373,7 @@ function calc(){
     anios_desde_egreso_cal_cont: anios,
     n_intento: intento,
     cautiva: document.getElementById('mod').value==='cautiva' ? 1 : 0,
-    destaque: document.getElementById('mod').value==='destaque' ? 1 : 0,
+    destaque: 0,
     sexo_M: +document.getElementById('sexo').value
   };
   const C = (modo==='2a') ? D.c2a : D.c2b;
@@ -389,8 +390,11 @@ function calc(){
   document.getElementById('chipmodo').textContent = (modo==='2a') ? t.chip2a : t.chip2b;
   // aviso de extrapolación dentro de rangos permitidos
   const extremo = (modo==='2a' && (nota<=15 || nota>=90)) || intento>=6 || anios>=25;
-  aviso.hidden = !extremo;
-  if (extremo) aviso.textContent = t.extrapo;
+  const mensajes = [];
+  if (modo==='2b') mensajes.push(t.sesgo2b);
+  if (extremo) mensajes.push(t.extrapo);
+  aviso.hidden = mensajes.length === 0;
+  aviso.textContent = mensajes.join(' ');
 }
 document.querySelectorAll('select,input').forEach(el=>el.addEventListener('input', calc));
 document.getElementById('fuente').addEventListener('change', function(){

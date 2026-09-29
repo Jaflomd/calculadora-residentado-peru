@@ -16,7 +16,11 @@ probabilidad de ingreso al residentado médico peruano con datos públicos de CO
 
 ## Avisos / Notices
 - NO es un instrumento oficial de CONAREME / NOT an official CONAREME instrument.
-- El supuesto simulacro→T no está validado / the mock-to-T assumption is untested.
+- Un simulacro produce solo un escenario de sensibilidad, no una probabilidad calibrada / a practice score produces a sensitivity scenario, not a calibrated probability.
+- El modelo pre-examen sobrepredijo 4.8 puntos porcentuales en promedio / the pre-examination model overpredicted by 4.8 percentage points on average.
+- La interfaz actual admite solo modalidades activas Libre y Cautiva; Destaque se conserva únicamente como coeficiente histórico / current inputs are limited to active Open and Sponsored modalities; Destaque remains only as a historical coefficient.
+- El número de intento ya incorpora la historia acumulada de postulaciones / attempt number already captures cumulative application history.
+- Se requiere recalibración periódica antes de uso rutinario / periodic recalibration is required before routine use.
 - Estimación poblacional: no garantiza ni niega el ingreso.
 
 Manuscrito en preparación (Flores-Cohaila et al.). Licencia MIT.
